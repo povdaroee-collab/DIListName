@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ទាញទិន្នន័យពី Firebase</title>
+    <title>ស្វែងរកនិស្សិត Firebase</title>
     <!-- 1. បន្ថែម Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 2. បន្ថែម Firebase SDKs (Realtime Database) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- 3. ប្តូរទៅ Lucide (សម្រាប់ Icons) -->
+    <!-- 3. បន្ថែម Lucide (សម្រាប់ Icons) -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
     <style>
-        /* បន្ថែមពុម្ពអក្សរខ្មែរ (ប្រសិនបើ 'Inter' របស់ Tailwind មិនបង្ហាញត្រឹមត្រូវ) */
+        /* បន្ថែមពុម្ពអក្សរខ្មែរ */
         @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;700&display=swap');
         
         body {
-            /* ប្រើ Inter មុន, បន្ទាប់មក 'Kantumruy Pro' ជា fallback */
             font-family: 'Inter', 'Kantumruy Pro', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
         }
 
         /* សម្រាប់លាក់ scrollbar តែនៅតែអាច scroll បាន */
@@ -34,39 +34,73 @@
         .detail-icon {
             width: 16px;
             height: 16px;
-            flex-shrink: 0; /* ការពារកុំឱ្យ Icon ធ្លាក់ */
+            flex-shrink: 0; 
+        }
+        
+        /* សម្រាប់ Icon ក្នុងប្រអប់ Search */
+        .search-icon {
+            position: absolute;
+            left: 0.75rem; /* 12px */
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF; /* text-gray-400 */
+        }
+        
+        .search-input {
+            padding-left: 2.5rem; /* 40px */
+        }
+
+        /* កំណត់កម្ពស់ Header ថេរ (សម្រាប់គណនា sticky top) */
+        .header-height {
+            height: 72px; 
         }
     </style>
 </head>
-<body class="bg-gray-800 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-100">
 
-    <!-- ក្របខ័ណ្ឌទូរស័ព្ទ (Phone Frame) -->
-    <div class="w-full max-w-sm bg-gray-100 rounded-2xl shadow-2xl overflow-hidden mx-auto flex flex-col" style="height: 85vh; min-height: 600px;">
+    <!-- ក្របខ័ណ្ឌពេញអេក្រង់ (Full-screen Frame) -->
+    <div class="w-full h-screen flex flex-col">
         
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-5 shadow-md z-10">
+        <!-- Header (Sticky) -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-5 shadow-md z-20 sticky top-0 flex items-center justify-center header-height">
             <h1 class="text-2xl font-bold text-white text-center">
-                📦 ទិន្នន័យនិស្សិត
+                📦 ស្វែងរកនិស្សិត
             </h1>
         </div>
 
         <!-- ផ្ទៃ Scrollable Content -->
-        <div class="flex-1 overflow-y-auto no-scrollbar">
+        <!-- ប្រើ `calc` ដើម្បីដកកម្ពស់ Header ចេញពីកម្ពស់អេក្រង់ -->
+        <div class="flex-1 flex flex-col overflow-hidden" style="height: calc(100vh - 72px);">
             
-            <!-- Input Section (បានលុប) -->
-            <!-- Status Message Area -->
-            <div id="status-message" class="hidden p-4 mx-5 mt-4 rounded-md"></div>
+            <!-- ផ្នែកស្វែងរក (Sticky) -->
+            <!-- នេះនឹងនៅខាងលើ ហើយផ្នែកលទ្ធផលនឹង scroll នៅខាងក្រោមវា -->
+            <div class="p-5 bg-white shadow-md z-10 sticky top-[72px]">
+                <label for="search-all" class="text-lg font-semibold text-gray-800 mb-3 block">
+                    ស្វែងរកនិស្សិត
+                </label>
+                <div class="relative">
+                    <i data-lucide="search" class="search-icon w-5 h-5"></i>
+                    <input 
+                        type="text" 
+                        id="search-all"
+                        placeholder="វាយ ឈ្មោះ, ID, ក្រុម, ថ្នាក់, ឬផ្នែកការងារ..."
+                        class="search-input w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                </div>
+                <!-- Status Message Area -->
+                <div id="status-message" class="p-3 mt-4 rounded-md bg-blue-100 text-blue-800 text-sm">⏳ កំពុងទាញបញ្ជីនិស្សិត...</div>
+            </div>
 
-            <!-- Output Section -->
-            <div class="p-5">
-                <label class="block text-sm font-medium text-gray-700 mb-3">
-                    លទ្ធផល (Cards)
+            <!-- Output Section (Scrollable) -->
+            <div class="flex-1 overflow-y-auto no-scrollbar p-5">
+                <label class="text-lg font-semibold text-gray-800 mb-3 block">
+                    លទ្ធផលស្វែងរក
                 </label>
                 <!-- កន្លែងបង្ហាញ Card -->
                 <div id="card-output-area" class="space-y-4">
                     <!-- Cards នឹងត្រូវបានបញ្ចូលមកទីនេះដោយ JavaScript -->
-                    <p id="initial-message" class="text-gray-400 text-center p-4">
-                        សូមរង់ចាំ... កំពុងទាញទិន្នន័យ...
+                    <p id="initial-message" class="text-gray-500 text-center p-4">
+                        សូមវាយក្នុងប្រអប់ស្វែងរក ដើម្បីបង្ហាញទិន្នន័យ...
                     </p>
                 </div>
             </div>
@@ -75,7 +109,22 @@
 
     <script>
         // ------------------------------------------------------------------
-        // ៣. ⚡️⚡️⚡️ ការកំណត់រចនាសម្ព័ន្ធ Firebase ⚡️⚡️⚡️
+        // ១. ⚡️⚡️⚡️ មុខងារ Debounce (សម្រាប់បង្កើនល្បឿនស្វែងរក) ⚡️⚡️⚡️
+        // ------------------------------------------------------------------
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // ------------------------------------------------------------------
+        // ២. ⚡️⚡️⚡️ ការកំណត់រចនាសម្ព័ន្ធ Firebase ⚡️⚡️⚡️
         // ------------------------------------------------------------------
         const firebaseConfig = {
             apiKey: "AIzaSyAc2g-t9A7du3K_nI2fJnw_OGxhmLfpP6s",
@@ -84,13 +133,19 @@
             projectId: "dilistname",
             storageBucket: "dilistname.firebasestorage.app",
             messagingSenderId: "897983357871",
-            appId: "1:897983357871:web:42a046bc9fb3e0543dc55a",
-            measurementId: "G-NQ798D9J6K"
+            appId: "1:897983357871:web:42a046bc9fb3e0543dc55a"
         };
         
+        // ៣. ធាតុ (Elements) សម្រាប់គ្រប់គ្រង
+        const statusEl = document.getElementById('status-message');
+        const outputEl = document.getElementById('card-output-area');
+        const initialMessageEl = document.getElementById('initial-message');
+        const searchAllEl = document.getElementById('search-all');
+
         // ៤. ផ្តួចផ្តើម (Initialize) Firebase
         let firebaseApp;
         let database;
+        let allStudentsData = []; // អថេរសម្រាប់ផ្ទុកទិន្នន័យទាំងអស់
         
         try {
             if (!firebase.apps.length) {
@@ -102,20 +157,12 @@
             }
         } catch (error) {
             console.error("Firebase initialization error:", error);
-            // We need showStatus to be defined to call it, but if init fails, we'll just log to console
-            console.error(
-                `❌ មានបញ្ហាក្នុងការភ្ជាប់ Firebase៖ ${error.message} សូមពិនិត្យ Config របស់អ្នក។`
-            );
+            showStatus(`មានបញ្ហាក្នុងការភ្ជាប់ Firebase៖ ${error.message} សូមពិនិត្យ Config របស់អ្នក។`, 'error');
         }
-
-        // ៥. មុខងារសម្រាប់បង្ហាញ Status
-        const statusEl = document.getElementById('status-message');
-        const outputEl = document.getElementById('card-output-area');
-        // const buttonEl = document.getElementById('fetch-button'); (លុបប៊ូតុង)
-        const initialMessageEl = document.getElementById('initial-message');
         
         function showStatus(message, type = 'loading') {
-            statusEl.classList.remove('hidden', 'bg-blue-100', 'text-blue-800', 'bg-red-100', 'text-red-800');
+            if (!statusEl) return;
+            statusEl.classList.remove('hidden', 'bg-blue-100', 'text-blue-800', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
             
             if (type === 'loading') {
                 statusEl.classList.add('bg-blue-100', 'text-blue-800');
@@ -123,27 +170,24 @@
             } else if (type === 'error') {
                 statusEl.classList.add('bg-red-100', 'text-red-800');
                 statusEl.textContent = `❌ ${message}`;
+            } else if (type === 'success') {
+                statusEl.classList.add('bg-green-100', 'text-green-800');
+                statusEl.textContent = `✅ ${message}`;
             }
             
             statusEl.classList.remove('hidden');
         }
 
-        // ៦. មុខងារថ្មី៖ បង្កើត HTML សម្រាប់ Card និស្សិត (រចនាបថថ្មី)
+        // ៥. មុខងារសម្រាប់បង្កើត Card
         
-        /**
-         * មុខងារជំនួយសម្រាប់បង្កើតแถวព័ត៌មានលម្អិត (Detail Row) ជាមួយ Icon
-         * @param {string} icon - ឈ្មោះ Icon ពី Lucide (ឧ. 'user', 'phone')
-         * @param {string} label - ស្លាក (ឧ. 'ជំនាញ')
-         * @param {string} value - តម្លៃ (ឧ. 'មិនមានជំនាញ')
-         */
         function createDetailRow(icon, label, value) {
-            if (!value || String(value).trim() === '') { // ពិនិត្យតម្លៃ string ឬ number
-                return ''; // កុំបង្ហាញแถว ប្រសិនបើតម្លៃទទេ
+            if (!value || String(value).trim() === '') {
+                return '';
             }
             return `
                 <div class="flex items-start space-x-3 text-sm text-gray-700">
                     <i data-lucide="${icon}" class="detail-icon text-indigo-600 mt-1"></i>
-                    <div class="flex-1 break-words"> <!-- បន្ថែម break-words -->
+                    <div class="flex-1 break-words">
                         <span class="font-medium">${label}:</span>
                         <span class="text-gray-900">${value}</span>
                     </div>
@@ -152,32 +196,24 @@
         }
 
         function createStudentCard(student) {
-            // ទាញយកទិន្នន័យទាំងអស់ (ប្រើ 'មិនបានបញ្ជាក់' ជា default)
+            // ទាញយក Fields តាមបញ្ជីដែលអ្នកបានបញ្ជាក់
             const name = student.ឈ្មោះ || 'មិនមានឈ្មោះ';
-            const major = student.ជំនាញ || 'មិនបានបញ្ជាក់';
-            const year = student.ឆ្នាំសិក្សា || 'N/A';
-            const group = student.គ្រុប || 'N/A';
+            const studentId = student.អត្តលេខ || 'N/A';
+            const group = student.ក្រុម || 'N/A';
+            const gender = student.ភេទ || 'N/A';
+            const className = student.ថ្នាក់ || 'N/A';
+            const major = student.ផ្នែកការងារ || 'មិនបានបញ្ជាក់';
+            const role = student.តួនាទី || 'N/A';
+            const link = student.តេឡេក្រាម || '';
             const imageUrl = student.រូបថត || '';
-            const link = student.តំណភ្ជាប់ || '';
-            const gender = student.ភេទ || 'មិនបានបញ្ជាក់';
-            const dob = student.ថ្ងៃខែឆ្នាំកំណើត || 'មិនបានបញ្ជាក់';
-            const pob = student.ទីកន្លែងកំណើត || 'មិនបានបញ្ជាក់';
-            const phone = student.លេខទូរស័ព្ទ || 'មិនបានបញ្ជាក់';
-            const studentId = student.លេខសម្គាល់ || 'N/A';
-            
-            // បានជួសជុល៖ បន្ថែមអថេរ (variables) ដែលបាត់
-            const email = student.អ៊ីមែល || 'មិនបានបញ្ជាក់';
-            const status = student.ស្ថានភាព || 'មិនបានបញ្ជាក់';
+            const gen = student.ជំនាន់ || 'N/A';
+            const year = student.ឆ្នាំសិក្សា || 'N/A';
             
             const placeholderImg = `https://placehold.co/200x200/e2e8f0/94a3b8?text=${encodeURIComponent(name.charAt(0) || '?')}`;
 
             return `
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-xl">
-                    
-                    <!-- ព័ត៌មានចម្បង -->
                     <div class="p-5">
-                        
-                        <!-- រូបថត (រចនាបថថ្មី - មូល) -->
                         <div class="flex justify-center mb-4">
                             <img 
                                 src="${imageUrl}" 
@@ -186,25 +222,19 @@
                                 onerror="this.onerror=null; this.src='${placeholderImg}';"
                             >
                         </div>
-                        
                         <h3 class="text-2xl font-bold text-indigo-700 break-words text-center">${name}</h3>
                         <p class="text-md font-medium text-gray-600 mb-4 text-center">ID: ${studentId}</p>
-
-                        <!-- ព័ត៌មានលម្អិត -->
+                        
                         <div class="space-y-3">
-                            ${createDetailRow('book-marked', 'ជំនាញ', major)}
-                            ${createDetailRow('calendar', 'ឆ្នាំសិក្សា', year)}
-                            ${createDetailRow('users', 'គ្រុប', group)}
+                            ${createDetailRow('briefcase', 'ផ្នែកការងារ', major)}
+                            ${createDetailRow('award', 'តួនាទី', role)}
+                            ${createDetailRow('layers', 'ជំនាន់', gen)}
+                            ${createDetailRow('calendar-days', 'ឆ្នាំសិក្សា', year)}
+                            ${createDetailRow('bookmark', 'ថ្នាក់', className)}
+                            ${createDetailRow('users', 'ក្រុម', group)}
                             ${createDetailRow('user-check', 'ភេទ', gender)}
-                            ${createDetailRow('gift', 'ថ្ងៃខែឆ្នាំកំណើត', dob)}
-                            ${createDetailRow('map-pin', 'ទីកន្លែងកំណើត', pob)}
-                            ${createDetailRow('phone', 'លេខទូរស័ព្ទ', phone)}
-                            ${createDetailRow('mail', 'អ៊ីមែល', email)}
-                            ${createDetailRow('info', 'ស្ថានភាព', status)}
                         </div>
                     </div>
-
-                    <!-- ប៊ូតុងតំណភ្ជាប់ (ប្រសិនបើមាន) -->
                     ${link !== '' ? `
                     <div class="p-5 border-t border-gray-100 bg-gray-50">
                         <a 
@@ -221,90 +251,103 @@
             `;
         }
 
-        // ៧. មុខងារหลักសម្រាប់ទាញទិន្នន័យ (បានជួសជុល - ដកការស្ទួនចេញ)
-        async function fetchFirebaseData() {
-            if (!database) {
-                showStatus('Firebase មិនទាន់ភ្ជាប់រួចរាល់ទេ។ សូមពិនិត្យ Console។', 'error');
+        // ៦. មុខងារ៖ ត្រង (Filter) និង បង្ហាញ (Render) លទ្ធផល
+        function renderFilteredResults() {
+            if (!searchAllEl || !outputEl || !initialMessageEl) return;
+            
+            const searchTerm = searchAllEl.value.toLowerCase().trim();
+
+            // ⚡️⚡️⚡️ FIX (Optimize Rendering): 
+            // ១. បង្កើត HTML ទាំងអស់ក្នុង String តែមួយ
+            let resultsHTML = '';
+
+            // ប្រសិនបើប្រអប់ search ទទេ
+            if (!searchTerm) {
+                initialMessageEl.style.display = 'block';
+                outputEl.innerHTML = ''; // សម្អាតលទ្ធផល
                 return;
             }
 
-            // បានលុប Input Box - ប្រើ Path ថេរ (Hard-coded)
-            const path = "/students"; 
-            
-            // បានលុបការត្រួតពិនិត្យ Path
-            
-            // buttonEl.disabled = true; (បានលុប)
-            // buttonEl.textContent = 'កំពុងទាញ...'; (បានលុប)
-            outputEl.innerHTML = ''; // សម្អាតលទ្ធផលចាស់
-            if (initialMessageEl) {
-                initialMessageEl.style.display = 'none'; // លាក់សារចាប់ផ្តើម
+            initialMessageEl.style.display = 'none';
+
+            const filtered = allStudentsData.filter(student => {
+                const name = String(student.ឈ្មោះ || '').toLowerCase();
+                const id = String(student.អត្តលេខ || '').toLowerCase();
+                const group = String(student.ក្រុម || '').toLowerCase();
+                const className = String(student.ថ្នាក់ || '').toLowerCase();
+                const major = String(student.ផ្នែកការងារ || '').toLowerCase(); 
+
+                return name.includes(searchTerm) || 
+                       id.includes(searchTerm) || 
+                       group.includes(searchTerm) || 
+                       className.includes(searchTerm) ||
+                       major.includes(searchTerm); 
+            });
+
+            if (filtered.length === 0) {
+                resultsHTML = '<p class="text-gray-500 text-center p-4">មិនមានទិន្នន័យត្រូវគ្នានឹងការស្វែងរកទេ។</p>';
+            } else {
+                filtered.forEach(student => {
+                    // ២. បូក String បញ្ចូលគ្នា (លឿនជាង .innerHTML +=)
+                    resultsHTML += createStudentCard(student);
+                });
             }
-            showStatus(`កំពុងទាញទិន្នន័យពី Path: ${path}`, 'loading');
+            
+            // ៣. "គូរ" (Render) ទៅ DOM តែម្ដងគត់
+            outputEl.innerHTML = resultsHTML;
+
+            // ៤. ហៅ Lucide បន្ទាប់ពី HTML ត្រូវបានបញ្ចូល
+            lucide.createIcons();
+        }
+
+        // ៧. មុខងារទាញទិន្នន័យ
+        function fetchFirebaseData() {
+            if (!database) {
+                showStatus('Firebase មិនទាន់ភ្ជាប់រួចរាល់ទេ។', 'error');
+                return;
+            }
+
+            const path = "/students"; 
+            showStatus(`កំពុងភ្ជាប់ទៅកាន់ Path: ${path}`, 'loading');
 
             try {
                 const dbRef = database.ref(path);
-                const snapshot = await dbRef.once('value');
                 
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    
-                    // ពិនិត្យមើលថាតើ data ជា Object ឬ Array
-                    if (typeof data === 'object' && data !== null) {
-                        // បំប្លែង Object ទៅជា Array
-                        const dataArray = Object.values(data);
-                        
-                        // បង្កើត Card សម្រាប់ធាតុនីមួយៗ
-                        dataArray.forEach(item => {
-                            if (typeof item === 'object' && item !== null) {
-                                outputEl.innerHTML += createStudentCard(item);
-                            }
-                        });
-
-                        // ❗️ សំខាន់៖ ហៅ Lucide ដើម្បីបង្កើត Icons
-                        lucide.createIcons();
-                        
-                        statusEl.classList.add('hidden'); // លាក់ Status បើជោគជ័យ
-                        
-                        if (dataArray.length === 0) {
-                            outputEl.innerHTML = '<p class="text-gray-500 text-center p-4">មិនមានទិន្នន័យសម្រាប់បង្ហាញទេ។</p>';
+                dbRef.on('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        if (typeof data === 'object' && data !== null) {
+                            allStudentsData = Object.values(data);
+                            showStatus(`បានទាញទិន្នន័យ ${allStudentsData.length} នាក់។ សូមចាប់ផ្តើមស្វែងរក។`, 'success');
+                            renderFilteredResults(); // ធ្វើបច្ចុប្បន្នភាពលទ្ធផល (ក្នុងករណីអ្នកប្រើប្រាស់បានវាយអ្វីមួយរួចហើយ)
+                        } else {
+                            allStudentsData = [];
+                            showStatus('ទិន្នន័យមាន ប៉ុន្តែមិនមែនជា Object', 'error');
                         }
-
                     } else {
-                        // ប្រសិនបើទិន្នន័យមិនមែនជា Object (ឧ. គ្រាន់តែជា String ឬ Number)
-                        outputEl.innerHTML = `<div class="bg-white p-4 rounded-md shadow-sm">
-                            <pre class="text-sm">${JSON.stringify(data, null, 2)}</pre>
-                        </div>`;
-                        statusEl.classList.add('hidden');
+                        allStudentsData = [];
+                        showStatus(`មិនមានទិន្នន័យត្រូវបានរកឃើញនៅ "${path}"`, 'error');
                     }
-                    
-                } else {
-                    outputEl.innerHTML = `<p class="text-gray-500 text-center p-4">មិនមានទិន្នន័យនៅ Path: "${path}"</p>`;
-                    if (initialMessageEl) {
-                        initialMessageEl.style.display = 'block'; // បង្ហាញសារដើមវិញបើ error
-                    }
-                    showStatus(`មិនមានទិន្នន័យត្រូវបានរកឃើញនៅ "${path}"`, 'error');
-                }
+                }, (error) => {
+                    console.error("Firebase fetch error:", error);
+                    showStatus(`មានបញ្ហាក្នុងការទាញទិន្នន័យ៖ ${error.message}`, 'error');
+                });
                 
             } catch (error) {
-                console.error("Firebase fetch error:", error);
-                outputEl.innerHTML = `<p class="text-red-600 text-center p-4">Error: ${error.message}</p>`;
-                if (initialMessageEl) {
-                    initialMessageEl.style.display = 'block'; // បង្ហាញសារដើមវិញបើ error
-                }
-                showStatus(
-                    `មានបញ្ហាក្នុងការទាញទិន្នន័យ៖ ${error.message} ` + 
-                    `(សូមពិនិត្យច្បាប់ Security Rules របស់អ្នក)`, 
-                    'error'
-                );
-            } finally {
-                // buttonEl.disabled = false; (បានលុប)
-                // buttonEl.textContent = 'ទាញទិន្នន័យ'; (បានលុប)
+                console.error("Error setting up listener:", error);
+                showStatus(`មានបញ្ហាក្នុងការតភ្ជាប់៖ ${error.message}`, 'error');
             }
         }
 
-        // ៨. ចាប់ផ្តើមទាញទិន្នន័យដោយស្វ័យប្រវត្តិ
-        // រង់ចាំឱ្យ DOM ត្រៀមរួចរាល់
+        // ៨. ចាប់ផ្តើមកម្មវិធី
         document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            if (searchAllEl) {
+                // ⚡️⚡️⚡️ FIX (Debounce): ប្រើ debounce 300ms ដើម្បីកុំឱ្យគាំង
+                searchAllEl.addEventListener('input', debounce(renderFilteredResults, 300));
+            }
+
             fetchFirebaseData();
         });
     </script>
