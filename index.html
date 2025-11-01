@@ -116,12 +116,12 @@
             <div class="flex items-center justify-between p-5 border-b border-gray-200">
                 <h3 class="text-xl font-bold text-indigo-700">ព័ត៌មានលម្អិតនិស្សិត</h3>
                 <div class="flex items-center space-x-2">
-                    <!-- ⚡️ NEW: ប៊ូតុង Download -->
-                    <button id="modal-download-btn" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="ទាញយករូបភាព">
+                    <!-- ប៊ូតុង Download -->
+                    <button id="modal-download-btn" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="ទាញយករូបភាព (សម្រាប់ Share ជា​រូប)">
                         <i data-lucide="download" class="w-6 h-6"></i>
                     </button>
-                    <!-- ⚡️ NEW: ប៊ូតុង Share Telegram -->
-                    <button id="modal-share-telegram-btn" class="text-gray-400 hover:text-sky-500 transition-colors p-1" title="Share ទៅ Telegram">
+                    <!-- ប៊ូតុង Share Telegram -->
+                    <button id="modal-share-telegram-btn" class="text-gray-400 hover:text-sky-500 transition-colors p-1" title="Share ជា Text ទៅ Telegram">
                         <i data-lucide="send" class="w-6 h-6"></i>
                     </button>
                     <button id="modal-close-btn" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="បិទ">
@@ -145,7 +145,7 @@
 
     <script>
         // ------------------------------------------------------------------
-        // ១. ⚡️⚡️⚡️ មុខងារ Debounce (សម្រាប់បង្កើនល្បឿនស្វែងរក) ⚡️⚡️⚡️
+        // ១. មុខងារ Debounce (សម្រាប់បង្កើនល្បឿនស្វែងរក)
         // ------------------------------------------------------------------
         function debounce(func, wait) {
             let timeout;
@@ -160,7 +160,7 @@
         }
 
         // ------------------------------------------------------------------
-        // ២. ⚡️⚡️⚡️ ការកំណត់រចនាសម្ព័ន្ធ Firebase ⚡️⚡️⚡️
+        // ២. ការកំណត់រចនាសម្ព័ន្ធ Firebase
         // ------------------------------------------------------------------
         const firebaseConfig = {
             apiKey: "AIzaSyAc2g-t9A7du3K_nI2fJnw_OGxhmLfpP6s",
@@ -185,7 +185,6 @@
         const modalBody = document.getElementById('modal-body');
         const modalFooter = document.getElementById('modal-footer');
         const modalCloseBtn = document.getElementById('modal-close-btn');
-        // ⚡️ NEW: ប៊ូតុងថ្មី
         const modalDownloadBtn = document.getElementById('modal-download-btn');
         const modalShareTelegramBtn = document.getElementById('modal-share-telegram-btn');
 
@@ -193,7 +192,7 @@
         let firebaseApp;
         let database;
         let allStudentsData = []; // អថេរសម្រាប់ផ្ទុកទិន្នន័យទាំងអស់
-        let currentModalStudent = null; // ⚡️ NEW: រក្សាទុកទិន្នន័យនិស្សិតដែលកំពុងបើក
+        let currentModalStudent = null; // រក្សាទុកទិន្នន័យនិស្សិតដែលកំពុងបើក
         let statusTimeout = null; 
         
         try {
@@ -273,7 +272,7 @@
         function openStudentModal(student) {
             if (!modal || !modalBody || !modalFooter) return;
             
-            currentModalStudent = student; // ⚡️ NEW: រក្សាទុកទិន្នន័យនិស្សិត
+            currentModalStudent = student; // រក្សាទុកទិន្នន័យនិស្សិត
             
             // ទាញយក Fields
             const name = student.ឈ្មោះ || 'មិនមានឈ្មោះ';
@@ -355,12 +354,11 @@
 
             setTimeout(() => {
                 modal.classList.add('hidden');
-                // សម្អាត classes សម្រាប់ animation លើកក្រោយ
                 modalOverlay.classList.remove('modal-overlay-leave-active');
                 modalOverlay.classList.add('modal-overlay-enter');
                 modalContent.classList.remove('modal-leave-active');
                 modalContent.classList.add('modal-enter');
-                currentModalStudent = null; // ⚡️ NEW: សម្អាតទិន្នន័យនិស្សិត
+                currentModalStudent = null; // សម្អាតទិន្នន័យនិស្សិត
             }, 200); // រង់ចាំ animation ចប់
         }
 
@@ -392,7 +390,6 @@
                 </div>
             `;
             
-            // បន្ថែម Event Listener ដើម្បីបើក Modal
             card.addEventListener('click', () => {
                 openStudentModal(student);
             });
@@ -405,15 +402,14 @@
             if (!searchAllEl || !outputEl || !resultsLabel) return;
             
             const searchTerm = searchAllEl.value.toLowerCase().trim();
-            outputEl.innerHTML = ''; // សម្អាតលទ្ធផលចាស់
+            outputEl.innerHTML = ''; 
             
             let filteredData = [];
 
-            // ស្វែងរកតែនៅពេល searchTerm មិនទទេ
             if (searchTerm) {
                 filteredData = allStudentsData.filter(student => {
                     const name = String(student.ឈ្មោះ || '').toLowerCase();
-                    const id = String(student.អត្តលេខ || '').toLowerCase(); // ⚡️ FIX: បំប្លែង ID ទៅជា String
+                    const id = String(student.អត្តលេខ || '').toLowerCase(); 
                     const group = String(student.ក្រុម || '').toLowerCase();
                     const className = String(student.ថ្នាក់ || '').toLowerCase();
                     const major = String(student.ផ្នែកការងារ || '').toLowerCase(); 
@@ -490,7 +486,7 @@
         }
 
         // ------------------------------------------------------------------
-        // ៨. ⚡️ NEW: មុខងារ Download និង Share ⚡️
+        // ៨. មុខងារ Download និង Share
         // ------------------------------------------------------------------
         function downloadModalAsImage() {
             if (!html2canvas || !modalBody) {
@@ -501,26 +497,28 @@
             const studentName = (currentModalStudent && currentModalStudent.ឈ្មោះ) ? currentModalStudent.ឈ្មោះ : 'student-info';
             const buttonsToHide = document.querySelectorAll('#modal-download-btn, #modal-share-telegram-btn, #modal-close-btn');
             
-            // លាក់ប៊ូតុង
+            // ⚡️ FIX: លាក់ប៊ូតុង និង Footer
             buttonsToHide.forEach(btn => btn.style.display = 'none');
+            if (modalFooter) modalFooter.style.display = 'none';
             
             html2canvas(modalContent, {
-                useCORS: true, // សម្រាប់ទាញរូបភាពពី URL ផ្សេង
+                useCORS: true, 
                 allowTaint: true,
-                scale: 2 // បង្កើន resolution រូបភាព
+                scale: 2 
             }).then(canvas => {
-                // បង្ហាញប៊ូតុងឡើងវិញ
+                // ⚡️ FIX: បង្ហាញប៊ូតុង និង Footer ឡើងវិញ
                 buttonsToHide.forEach(btn => btn.style.display = 'block');
+                if (modalFooter) modalFooter.style.display = 'block';
                 
-                // បង្កើតតំណភ្ជាប់ទាញយក
                 const link = document.createElement('a');
                 link.download = `${studentName.replace(/ /g, '_')}_info.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 
             }).catch(err => {
-                // បង្ហាញប៊ូតុងឡើងវិញ ទោះបីជាមាន error ក៏ដោយ
+                // ⚡️ FIX: បង្ហាញប៊ូតុង និង Footer ឡើងវិញ
                 buttonsToHide.forEach(btn => btn.style.display = 'block');
+                if (modalFooter) modalFooter.style.display = 'block';
                 console.error('Error generating image:', err);
                 alert('មានបញ្ហាក្នុងការបង្កើតរូបភាព។');
             });
@@ -532,20 +530,39 @@
                 return;
             }
             
+            // ⚡️ FIX: ទាញយក Fields ទាំងអស់
             const name = currentModalStudent.ឈ្មោះ || 'N/A';
             const studentId = String(currentModalStudent.អត្តលេខ || 'N/A');
             const major = currentModalStudent.ផ្នែកការងារ || 'N/A';
+            const role = currentModalStudent.តួនាទី || 'N/A';
+            const gen = currentModalStudent.ជំនាន់ || 'N/A';
+            const year = currentModalStudent.ឆ្នាំសិក្សា || 'N/A';
+            const className = currentModalStudent.ថ្នាក់ || 'N/A';
+            const group = currentModalStudent.ក្រុម || 'N/A';
+            const gender = currentModalStudent.ភេទ || 'N/A';
+            const telegramLink = formatTelegramLink(currentModalStudent.តេឡេក្រាម);
+
+            // ⚡️ FIX: បង្កើតអត្ថបទលម្អិត (រៀបចំស្អាត)
+            let text = `===== ព័ត៌មាននិស្សិត =====\n\n`;
+            text += `👤 ឈ្មោះ: ${name}\n`;
+            text += `💳 ID: ${studentId}\n\n`;
+            text += `--- ព័ត៌មានសិក្សា ---\n`;
+            text += `🧑‍💼 ផ្នែកការងារ: ${major}\n`;
+            text += `✨ តួនាទី: ${role}\n`;
+            text += `📚 ជំនាន់: ${gen}\n`;
+            text += `📅 ឆ្នាំសិក្សា: ${year}\n`;
+            text += `🔖 ថ្នាក់: ${className}\n`;
+            text += `👥 ក្រុម: ${group}\n`;
+            text += `⚧️ ភេទ: ${gender}\n\n`;
             
-            // បង្កើតអត្ថបទសង្ខេប
-            let text = `--- ព័ត៌មាននិស្សិត ---\n`;
-            text += `ឈ្មោះ: ${name}\n`;
-            text += `ID: ${studentId}\n`;
-            text += `ផ្នែកការងារ: ${major}\n`;
+            if (telegramLink) {
+                text += `--- ទំនាក់ទំនង ---\n`;
+                text += `✈️ Telegram: ${telegramLink}\n`;
+            }
             
             const encodedText = encodeURIComponent(text);
             const telegramUrl = `https://t.me/share/url?url=student-info&text=${encodedText}`;
             
-            // បើកផ្ទាំងថ្មីសម្រាប់ Share
             window.open(telegramUrl, '_blank');
         }
 
@@ -558,7 +575,6 @@
                 searchAllEl.addEventListener('input', debounce(renderFilteredResults, 300));
             }
 
-            // Event Listeners សម្រាប់បិទ Modal
             if (modalCloseBtn) {
                 modalCloseBtn.addEventListener('click', closeStudentModal);
             }
@@ -566,7 +582,6 @@
                 modalOverlay.addEventListener('click', closeStudentModal);
             }
             
-            // ⚡️ NEW: Event Listeners សម្រាប់ Download និង Share
             if (modalDownloadBtn) {
                 modalDownloadBtn.addEventListener('click', downloadModalAsImage);
             }
