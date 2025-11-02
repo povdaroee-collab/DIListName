@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <!-- 3. បន្ថែម Lucide (សម្រាប់ Icons) -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <!-- 4. បន្ថែម html2canvas (សម្រាប់ Download រូបភាព) -->
+    <!-- 4. ⚡️ NEW: បន្ថែម html2canvas (សម្រាប់ Download រូបភាព) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
@@ -117,11 +117,11 @@
                 <h3 class="text-xl font-bold text-indigo-700">ព័ត៌មានលម្អិតនិស្សិត</h3>
                 <div class="flex items-center space-x-2">
                     <!-- ប៊ូតុង Download -->
-                    <button id="modal-download-btn" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="ទាញយករូបភាព">
+                    <button id="modal-download-btn" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="ទាញយករូបភាព (សម្រាប់ Share ជា​រូប)">
                         <i data-lucide="download" class="w-6 h-6"></i>
                     </button>
                     <!-- ប៊ូតុង Share Telegram -->
-                    <button id="modal-share-telegram-btn" class="text-gray-400 hover:text-sky-500 transition-colors p-1" title="Share ជម្រើស...">
+                    <button id="modal-share-telegram-btn" class="text-gray-400 hover:text-sky-500 transition-colors p-1" title="Share ជា Text ទៅ Telegram">
                         <i data-lucide="send" class="w-6 h-6"></i>
                     </button>
                     <button id="modal-close-btn" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="បិទ">
@@ -139,31 +139,6 @@
             <div id="modal-footer" class="p-5 border-t border-gray-100 bg-gray-50">
                 <!-- ប៊ូតុង Telegram នឹងត្រូវបានបញ្ចូលមកទីនេះ -->
             </div>
-        </div>
-    </div>
-
-    <!-- ⚡️ NEW: Modal (Pop up) សម្រាប់ជម្រើស Share -->
-    <div id="share-options-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
-        <!-- Overlay -->
-        <div id="share-options-overlay" class="fixed inset-0 bg-black/60 modal-overlay-enter"></div>
-        
-        <!-- Modal Content -->
-        <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-sm modal-enter p-6 space-y-4">
-            <h3 class="text-lg font-bold text-center text-gray-800 mb-4">ជ្រើសរើសរបៀប Share</h3>
-            
-            <button id="share-as-text-btn" class="flex items-center justify-center w-full text-center bg-sky-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-sky-700 transition-colors">
-                <i data-lucide="file-text" class="w-5 h-5 mr-2"></i>
-                Share ព័ត៌មាន (Text)
-            </button>
-
-            <button id="share-as-image-btn" class="flex items-center justify-center w-full text-center bg-blue-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                <i data-lucide="image" class="w-5 h-5 mr-2"></i>
-                ទាញយករូបភាព (សម្រាប់ Share)
-            </button>
-
-            <button id="share-options-close-btn" class="mt-4 w-full text-center text-gray-600 font-medium py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors">
-                បោះបង់
-            </button>
         </div>
     </div>
 
@@ -212,13 +187,6 @@
         const modalCloseBtn = document.getElementById('modal-close-btn');
         const modalDownloadBtn = document.getElementById('modal-download-btn');
         const modalShareTelegramBtn = document.getElementById('modal-share-telegram-btn');
-
-        // ⚡️ NEW: Share Options Modal Elements
-        const shareOptionsModal = document.getElementById('share-options-modal');
-        const shareOptionsOverlay = document.getElementById('share-options-overlay');
-        const shareAsTextBtn = document.getElementById('share-as-text-btn');
-        const shareAsImageBtn = document.getElementById('share-as-image-btn');
-        const shareOptionsCloseBtn = document.getElementById('share-options-close-btn');
 
         // ៤. ផ្តួចផ្តើម (Initialize) Firebase
         let firebaseApp;
@@ -520,9 +488,7 @@
         // ------------------------------------------------------------------
         // ៨. មុខងារ Download និង Share
         // ------------------------------------------------------------------
-        
-        // ⚡️ RENAMED: ពី downloadModalAsImage ទៅ generateAndDownloadImage
-        function generateAndDownloadImage() {
+        function downloadModalAsImage() {
             if (!html2canvas || !modalBody) {
                 alert('មិនអាចទាញយករូបភាពបានទេ (Error: html2canvas not loaded)');
                 return;
@@ -531,7 +497,7 @@
             const studentName = (currentModalStudent && currentModalStudent.ឈ្មោះ) ? currentModalStudent.ឈ្មោះ : 'student-info';
             const buttonsToHide = document.querySelectorAll('#modal-download-btn, #modal-share-telegram-btn, #modal-close-btn');
             
-            // លាក់ប៊ូតុង និង Footer
+            // ⚡️ FIX: លាក់ប៊ូតុង និង Footer
             buttonsToHide.forEach(btn => btn.style.display = 'none');
             if (modalFooter) modalFooter.style.display = 'none';
             
@@ -540,7 +506,7 @@
                 allowTaint: true,
                 scale: 2 
             }).then(canvas => {
-                // បង្ហាញប៊ូតុង និង Footer ឡើងវិញ
+                // ⚡️ FIX: បង្ហាញប៊ូតុង និង Footer ឡើងវិញ
                 buttonsToHide.forEach(btn => btn.style.display = 'block');
                 if (modalFooter) modalFooter.style.display = 'block';
                 
@@ -550,7 +516,7 @@
                 link.click();
                 
             }).catch(err => {
-                // បង្ហាញប៊ូតុង និង Footer ឡើងវិញ
+                // ⚡️ FIX: បង្ហាញប៊ូតុង និង Footer ឡើងវិញ
                 buttonsToHide.forEach(btn => btn.style.display = 'block');
                 if (modalFooter) modalFooter.style.display = 'block';
                 console.error('Error generating image:', err);
@@ -564,6 +530,7 @@
                 return;
             }
             
+            // ⚡️ FIX: ទាញយក Fields ទាំងអស់
             const name = currentModalStudent.ឈ្មោះ || 'N/A';
             const studentId = String(currentModalStudent.អត្តលេខ || 'N/A');
             const major = currentModalStudent.ផ្នែកការងារ || 'N/A';
@@ -575,6 +542,7 @@
             const gender = currentModalStudent.ភេទ || 'N/A';
             const telegramLink = formatTelegramLink(currentModalStudent.តេឡេក្រាម);
 
+            // ⚡️ FIX: បង្កើតអត្ថបទលម្អិត (រៀបចំស្អាត)
             let text = `===== ព័ត៌មាននិស្សិត =====\n\n`;
             text += `👤 ឈ្មោះ: ${name}\n`;
             text += `💳 ID: ${studentId}\n\n`;
@@ -598,19 +566,6 @@
             window.open(telegramUrl, '_blank');
         }
 
-        // ⚡️ NEW: មុខងារសម្រាប់ Share Options Modal
-        function openShareOptionsModal() {
-            if (!shareOptionsModal) return;
-            shareOptionsModal.classList.remove('hidden');
-            // គូរ icons ក្នុង modal ថ្មី
-            lucide.createIcons();
-        }
-
-        function closeShareOptionsModal() {
-            if (!shareOptionsModal) return;
-            shareOptionsModal.classList.add('hidden');
-        }
-
 
         // ៩. ចាប់ផ្តើមកម្មវិធី
         document.addEventListener('DOMContentLoaded', () => {
@@ -620,7 +575,6 @@
                 searchAllEl.addEventListener('input', debounce(renderFilteredResults, 300));
             }
 
-            // Event Listeners សម្រាប់បិទ Modal
             if (modalCloseBtn) {
                 modalCloseBtn.addEventListener('click', closeStudentModal);
             }
@@ -628,34 +582,11 @@
                 modalOverlay.addEventListener('click', closeStudentModal);
             }
             
-            // ⚡️ CHANGED: កែសម្រួល Listeners របស់ Modal
             if (modalDownloadBtn) {
-                // ប៊ូតុង Download គឺនៅតែ Download
-                modalDownloadBtn.addEventListener('click', generateAndDownloadImage);
+                modalDownloadBtn.addEventListener('click', downloadModalAsImage);
             }
             if (modalShareTelegramBtn) {
-                // ប៊ូតុង Share ឥឡូវនេះបើក Modal ថ្មី
-                modalShareTelegramBtn.addEventListener('click', openShareOptionsModal);
-            }
-
-            // ⚡️ NEW: Listeners សម្រាប់ Share Options Modal
-            if (shareOptionsCloseBtn) {
-                shareOptionsCloseBtn.addEventListener('click', closeShareOptionsModal);
-            }
-            if (shareOptionsOverlay) {
-                shareOptionsOverlay.addEventListener('click', closeShareOptionsModal);
-            }
-            if (shareAsTextBtn) {
-                shareAsTextBtn.addEventListener('click', () => {
-                    shareModalToTelegram(); // ហៅមុខងារ Share Text
-                    closeShareOptionsModal(); // បិទ Modal ជម្រើស
-                });
-            }
-            if (shareAsImageBtn) {
-                shareAsImageBtn.addEventListener('click', () => {
-                    generateAndDownloadImage(); // ហៅមុខងារ Download Image
-                    closeShareOptionsModal(); // បិទ Modal ជម្រើស
-                });
+                modalShareTelegramBtn.addEventListener('click', shareModalToTelegram);
             }
 
             // ចាប់ផ្តើមទាញទិន្នន័យ (Realtime)
