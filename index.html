@@ -330,7 +330,8 @@
             const studentId = String(student.អត្តលេខ || 'N/A');
             const group = student.ក្រុម || 'N/A';
             const gender = student.ភេទ || 'N/A';
-            const className = student.ថ្នាក់ || 'N/A';
+            // ⚡️ FIX: ប្រើ Key "ថា្នក់" (មាន ា និង ់) តាមការបញ្ជាក់ចុងក្រោយ
+            const className = student.ថា្នក់ || 'N/A';
             const major = student.ផ្នែកការងារ || 'មិនបានបញ្ជាក់';
             const role = student.តួនាទី || 'N/A';
             const telegramLink = formatTelegramLink(student.តេឡេក្រាម);
@@ -358,6 +359,7 @@
                     ${createDetailRow('award', 'តួនាទី', role)}
                     ${createDetailRow('layers', 'ជំនាន់', gen)}
                     ${createDetailRow('calendar-days', 'ឆ្នាំសិក្សា', year)}
+                    <!-- ⚡️ FIX: ប្រើ className ដែលបានទាញមក -->
                     ${createDetailRow('bookmark', 'ថ្នាក់', className)}
                     ${createDetailRow('users', 'ក្រុម', group)}
                     ${createDetailRow('user-check', 'ភេទ', gender)}
@@ -461,7 +463,8 @@
                     const name = String(student.ឈ្មោះ || '').toLowerCase();
                     const id = String(student.អត្តលេខ || '').toLowerCase(); 
                     const group = String(student.ក្រុម || '').toLowerCase();
-                    const className = String(student.ថ្នាក់ || '').toLowerCase();
+                    // ⚡️ FIX: ប្រើ Key "ថា្នក់" (មាន ា និង ់) តាមការបញ្ជាក់ចុងក្រោយ
+                    const className = String(student.ថា្នក់ || '').toLowerCase();
                     const major = String(student.ផ្នែកការងារ || '').toLowerCase(); 
 
                     return name.includes(searchTerm) || 
@@ -510,11 +513,50 @@
                     if (snapshot.exists()) {
                         const data = snapshot.val();
                         if (typeof data === 'object' && data !== null) {
-                            allStudentsData = Object.values(data);
+                            
+                            // ⚡️ FIX: សម្អាតទិន្នន័យដោយការ Trim Keys ដែលមើលមិនឃើញ
+                            // រត់ឆ្លងកាត់និស្សិតម្នាក់ៗ
+                            allStudentsData = Object.values(data).map(student => {
+                                const cleanedStudent = {};
+                                
+                                // រត់ឆ្លងកាត់ Properties របស់និស្សិតម្នាក់ៗ (ឈ្មោះ, ថ្នាក់, ...)
+                                Object.keys(student).forEach(propKey => {
+                                    // 1. កាត់ Space ដែលមើលមិនឃើញចេញពី Key
+                                    const trimmedKey = propKey.trim(); 
+                                    
+                                    // 2. បញ្ចូលទិន្នន័យទៅក្នុង Object ស្អាតថ្មី
+                                    cleanedStudent[trimmedKey] = student[propKey];
+                                });
+                                return cleanedStudent; // ត្រឡប់ Object ដែលបានសម្អាត
+                            });
+
                             if (statusEl.textContent.includes('កំពុងភ្ជាប់')) {
                                 showStatus(`បានទាញទិន្នន័យ ${allStudentsData.length} នាក់។ សូមចាប់ផ្តើមស្វែងរក។`, 'success');
                             }
+                            
+                            // 1. ធ្វើបច្ចុប្បន្នភាព Card ជានិច្ច
                             renderFilteredResults(); 
+
+                            // ⚡️ NEW: ធ្វើបច្ចុប្បន្នភាព Modal ប្រសិនបើវាកំពុងបើក
+                            if (currentModalStudent) {
+                                // ស្វែងរក ID របស់និស្សិតដែលកំពុងបង្ហាញ
+                                const currentId = currentModalStudent.អត្តលេខ; 
+                                if (currentId) {
+                                    // ស្វែងរកទិន្នន័យថ្មីរបស់និស្សិតនោះ ពីក្នុងបញ្ជីដែល update រួច
+                                    const updatedStudent = allStudentsData.find(student => student.អត្តលេខ === currentId);
+                                    
+                                    if (updatedStudent) {
+                                        // បើនៅតែមាន => បើក Modal ឡើងវិញ (Refresh) ជាមួយទិន្នន័យថ្មី
+                                        // វានឹងជំនួស HTML ចាស់ដោយស្វ័យប្រវត្តិ
+                                        openStudentModal(updatedStudent);
+                                    } else {
+                                        // បើនិស្សិតនោះត្រូវបានលុប => បិទ Modal
+                                        closeStudentModal();
+                                    }
+                                }
+                            }
+                            // ⚡️ END NEW SECTION
+
                         } else {
                             allStudentsData = [];
                             showStatus('ទិន្នន័យមាន ប៉ុន្តែមិនមែនជា Object', 'error');
@@ -660,27 +702,30 @@
             }
             
             const name = currentModalStudent.ឈ្មោះ || 'N/A';
+            const gender = currentModalStudent.ភេទ || 'N/A';
             const studentId = String(currentModalStudent.អត្តលេខ || 'N/A');
             const major = currentModalStudent.ផ្នែកការងារ || 'N/A';
             const role = currentModalStudent.តួនាទី || 'N/A';
             const gen = currentModalStudent.ជំនាន់ || 'N/A';
             const year = currentModalStudent.ឆ្នាំសិក្សា || 'N/A';
-            const className = currentModalStudent.ថ្នាក់ || 'N/A';
+            // ⚡️ FIX: ប្រើ Key "ថា្នក់" (មាន ា និង ់) តាមការបញ្ជាក់ចុងក្រោយ
+            const className = currentModalStudent.ថា្នក់ || 'N/A';
             const group = currentModalStudent.ក្រុម || 'N/A';
-            const gender = currentModalStudent.ភេទ || 'N/A';
             const telegramLink = formatTelegramLink(currentModalStudent.តេឡេក្រាម);
 
             let text = `===== ព័ត៌មាននិស្សិត =====\n\n`;
             text += `👤 ឈ្មោះ: ${name}\n`;
             text += `💳 ID: ${studentId}\n\n`;
+            text += `⚧️ ភេទ: ${gender}\n\n`;
             text += `--- ព័ត៌មានសិក្សា ---\n`;
             text += `🧑‍💼 ផ្នែកការងារ: ${major}\n`;
             text += `✨ តួនាទី: ${role}\n`;
             text += `📚 ជំនាន់: ${gen}\n`;
             text += `📅 ឆ្នាំសិក្សា: ${year}\n`;
+            // ⚡️ FIX: ប្រើ Key "ថ្នាក" (គ្មាន ់) ឱ្យដូចក្នុង Firebase
             text += `🔖 ថ្នាក់: ${className}\n`;
             text += `👥 ក្រុម: ${group}\n`;
-            text += `⚧️ ភេទ: ${gender}\n\n`;
+            
             
             if (telegramLink) {
                 text += `--- ទំនាក់ទំនង ---\n`;
@@ -792,4 +837,14 @@
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
 
